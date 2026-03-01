@@ -27,18 +27,18 @@
   - [3.4. Thực hiện request](#34-thực-hiện-request)
 - [Phần 4. Dữ liệu được định nghĩa từ trước - Phần này không có trong dự án chính thức](#phần-4-dữ-liệu-được-định-nghĩa-từ-trước---phần-này-không-có-trong-dự-án-chính-thức)
 - [Phần 5. Thư mục `app/core` - Lưu cấu hình trung tâm](#phần-5-thư-mục-appcore---lưu-cấu-hình-trung-tâm)
-- [Phần 6. Thư mục `database` - Kết nối database](#phần-6-thư-mục-database---kết-nối-database)
-- [Phần 7. Thư mục `schemas/`  - Nơi chứa Pydantic models](#phần-7-thư-mục-schemas----nơi-chứa-pydantic-models)
-- [Phần 8. Thư mục `services/` - Xử lí nghiệp vụ chính của ứng dụng](#phần-8-thư-mục-services---xử-lí-nghiệp-vụ-chính-của-ứng-dụng)
+- [Phần 6. Thư mục `app/database` - Kết nối database](#phần-6-thư-mục-appdatabase---kết-nối-database)
+- [Phần 7. Thư mục `app/schemas/`  - Nơi chứa Pydantic models](#phần-7-thư-mục-appschemas----nơi-chứa-pydantic-models)
+- [Phần 8. Thư mục `app/services/` - Xử lí nghiệp vụ chính của ứng dụng](#phần-8-thư-mục-appservices---xử-lí-nghiệp-vụ-chính-của-ứng-dụng)
   - [8.1. Phân tích](#81-phân-tích)
   - [8.2. Ví dụ](#82-ví-dụ)
-- [Phần 9. Thư mục `middlewares/` - Lớp chạy trước mỗi request](#phần-9-thư-mục-middlewares---lớp-chạy-trước-mỗi-request)
+- [Phần 9. Thư mục `app/middlewares/` - Lớp chạy trước mỗi request](#phần-9-thư-mục-appmiddlewares---lớp-chạy-trước-mỗi-request)
   - [9.1 Middleware dùng cho](#91-middleware-dùng-cho)
   - [9.2. Mối quan hệ với `core/`](#92-mối-quan-hệ-với-core)
     - [`core/` là gì?](#core-là-gì)
     - [`middlewares/` là gì?](#middlewares-là-gì)
     - [Ví dụ 1](#ví-dụ-1)
-- [Phần 10. Thư mục `api/` - Định nghĩa các route/endpoint (REST API, WebSocket...)](#phần-10-thư-mục-api---định-nghĩa-các-routeendpoint-rest-api-websocket)
+- [Phần 10. Thư mục `app/api/` - Định nghĩa các route/endpoint (REST API, WebSocket...)](#phần-10-thư-mục-appapi---định-nghĩa-các-routeendpoint-rest-api-websocket)
 - [Phần 11. Thư mục `dependencies/`](#phần-11-thư-mục-dependencies)
   - [11.1. Chức năng](#111-chức-năng)
   - [11.2. Ví dụ](#112-ví-dụ)
@@ -47,6 +47,11 @@
     - [11.2.3. Phân quyền](#1123-phân-quyền)
   - [Lưu ý](#lưu-ý)
   - [11.3. Mối quan hệ với `core/`](#113-mối-quan-hệ-với-core)
+- [Phần 12. Kết nối database MySQL](#phần-12-kết-nối-database-mysql)
+  - [12.1. Triển khai code test](#121-triển-khai-code-test)
+  - [12.2. Triển khai code vào thư mục test](#122-triển-khai-code-vào-thư-mục-test)
+    - [12.2.1. Khởi tạo file cấu hình trung tâm `settings.py`](#1221-khởi-tạo-file-cấu-hình-trung-tâm-settingspy)
+    - [12.2.2. Khởi tạo file `.env` - lưu thông tin nhạy cảm](#1222-khởi-tạo-file-env---lưu-thông-tin-nhạy-cảm)
 
 # Phần 1. Thiết lập cơ bản
 
@@ -194,7 +199,7 @@ Ta không được push file `.env` lên trên github, đồng thời không pus
 - **PATCH**: Dùng để cập nhật một phần thông tin trên máy chủ web. Thông tin được gửi trong phần thân của yêu cầu.  
 - **DELETE**: Dùng để xóa thông tin khỏi máy chủ web. Thông tin được gửi trong URL của yêu cầu.  
 
-```py
+```
 @app.get(<URI>)
 @app.post(<URI>)
 @app.put(<URI>)
@@ -525,21 +530,23 @@ if __name__ == "__main__":
 # Phần 5. Thư mục `app/core` - Lưu cấu hình trung tâm
 
 Thư mục `core` dùng để lưu các file cấu hình trung tâm:
+
 - settings.py - Cấu hình hệ thống (quản lý: Biến môi trường, Database URL, Secret Key, CORS, Debug mode)
 - security.py - Bảo mật (Hash password, JWT token, OAuth2, Authentication logic)
 - logging.py  - Ghi log hệ thống (ghi log request, ghi log lỗi, theo dõi hệ thống)
 - constants.py - Hằng số hệ thống (chứa các giá trị không thể thay đổi)
 
-# Phần 6. Thư mục `database` - Kết nối database
+# Phần 6. Thư mục `app/database` - Kết nối database
 
-+ database.py - Tạo Engine (kết nối database, cấu hình engine)
+- database.py - Tạo Engine (kết nối database, cấu hình engine)
+
 - session.py - Quản lý session (mỗi request có 1 session riêng, tránh rò rỉ khi kết nối)
 - base.py - Base ORM (Tạo class Base để các model kế thừa)
 - `models/` - Thư mục khởi tạo, lưu giữ các file tạo bảng database (mapping bảng db thành class Python)
 - `repositories/` - Thư mục chứa các file, hàm truy vấn database
 - `migrations/` - Alembic Migration (được Alembic tạo ra) (quản lí thay đổi schema DB, version control cho database)
 
-# Phần 7. Thư mục `schemas/`  - Nơi chứa Pydantic models
+# Phần 7. Thư mục `app/schemas/`  - Nơi chứa Pydantic models
 
 > Dùng cho:
 >
@@ -582,16 +589,18 @@ Thư mục `core` dùng để lưu các file cấu hình trung tâm:
 >
 > Rồi trong các file của `db/models/` kế thừa class `Base` sau đó định nghĩa cấu trúc cho các bảng
 
-# Phần 8. Thư mục `services/` - Xử lí nghiệp vụ chính của ứng dụng
+# Phần 8. Thư mục `app/services/` - Xử lí nghiệp vụ chính của ứng dụng
 
 ## 8.1. Phân tích
 
 **Không:**
+
 - Không validate cấu trúc request (việc đó do schemas)
 - Không truy vấn DB trực tiếp (việc đó do repository)
 - Không xử lý HTTP (việc đó do router)
 
 **Service có thể làm gì:**
+
 Ví dụ: tạo task.
 
 - Không chỉ đơn giản là thêm vào DB.
@@ -640,20 +649,22 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db)):
     return create_task_service(db, task.name)
 ```
 
-# Phần 9. Thư mục `middlewares/` - Lớp chạy trước mỗi request
+# Phần 9. Thư mục `app/middlewares/` - Lớp chạy trước mỗi request
 
 ```
 Client → Middleware → Router → Middleware → Response
 ```
 
 Tức là:
+
 - Chạy trước khi vào router
 - Chạy sau khi router trả response
 - Nó áp dụng toàn bộ ứng dụng, không phải từng endpoint riêng lẻ.
 
 ## 9.1 Middleware dùng cho
 
-+ CORS
+- CORS
+
 - Logging request/response
 - Rate limit
 - Xử lý header
@@ -719,9 +730,10 @@ async def log_requests(request, call_next):
 
 Middleware chỉ dùng logger đã được cấu hình.
 
-# Phần 10. Thư mục `api/` - Định nghĩa các route/endpoint (REST API, WebSocket...)
+# Phần 10. Thư mục `app/api/` - Định nghĩa các route/endpoint (REST API, WebSocket...)
 
 `api/` là interface layer của hệ thống. Nó chịu trách nhiệm:
+
 - Định nghĩa route (GET, POST, PUT, DELETE…)
 - Nhận request
 - Gắn dependency
@@ -769,6 +781,7 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db)):
 ## 11.1. Chức năng
 
 Chứa các hàm:
+
 - Xác thực (auth)
 - Phân quyền (authorization)
 - Inject DB session
@@ -874,7 +887,8 @@ Router:
 
 ## Lưu ý
 
-+ dependencies/ KHÔNG phải là business layer.
+- dependencies/ KHÔNG phải là business layer.
+
 - Không chứa nghiệp vụ chính
 - Không xử lý logic phức tạp hệ thống
 - Không gọi DB trực tiếp (trừ auth lookup user)
@@ -899,3 +913,298 @@ core  → cung cấp cấu hình / utility
 middlewares → dùng cấu hình để xử lý request toàn cục
 dependencies → dùng cấu hình để xử lý logic HTTP
 services → dùng utility để xử lý nghiệp vụ
+
+# Phần 12. Kết nối database MySQL
+
+> Thư mục `test/` có thể được coi như thư mục `e-commerce-app-api/`
+
+```
+app/
+test/
+```
+
+## 12.1. Triển khai code test
+
+***`test.py`: - file nằm ngoài thư mục test (test xong file này -> triển khai cấu trúc mẫu vào thư mục test)***
+
+```py
+from sqlalchemy import create_engine
+
+settings = [
+    {"DATABASE_URL" : "mysql+pymysql://root:password@localhost:3306/shop_db"},
+    {"DEBUG": True},
+    {"pool_size": 10},
+    {"max_overflow": 20},
+    {"pool_pre_ping": True}
+]
+
+engine = create_engine(
+    settings[0]['DATABASE_URL'],               # link kết nối database
+    echo=settings[1]['DEBUG'],                 # log SQL ra terminal khi debug
+    pool_size=settings[2]["pool_size"],        # số kết nối tối đa trong pool
+    max_overflow=settings[3]["max_overflow"],  # cho phép thêm 20 kết nối khi pool đầy
+    pool_pre_ping=settings[4]["pool_pre_ping"] # kiểm tra kết nối trước mỗi lần dùng
+)
+
+# SessionLocal: factory tạo ra mỗi session làm việc với database
+# autocommit=False -> ta tự commit -> an toàn hơn
+# autoflush=False -> không tự flush trước query
+from sqlalchemy.orm import sessionmaker
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Base: tất cả models phải kế thừa class này
+from sqlalchemy.ext.declarative import declarative_base
+Base = declarative_base()
+
+##############################################################################
+# Test chức năng xem kết nối được chưa
+##############################################################################
+
+# models.py (tạo bảng mẫu)
+# from database import Base
+from sqlalchemy import Column, Integer, String
+class User(Base):
+    __tablename__ = "users_test"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    email =  Column(String(100), unique=True, index=True)
+
+# create_table.py (tạo bảng trong db)
+# from database import engine, Base
+# import models # file models.py
+Base.metadata.create_all(bind=engine)
+print('Tạo bảng thành công') # Viết đến đây, chạy -> kiểm tra database
+
+# test_insert.py (test kết nối + thêm dữ liệu)
+# from database import SessionLocal
+# from models import User
+db = SessionLocal()
+
+try: 
+    new_user = User(name="Son", email="son@example.com")
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    print("Thêm user thành công:", new_user.id)
+except Exception as e:
+    db.rollback()
+    print("Lỗi:", e)
+finally:
+    db.close()
+
+# Viết đến đây, chạy -> kiểm tra database
+```
+
+## 12.2. Triển khai code vào thư mục test
+
+> Triển khai cấu trúc `test/` tương tự như `e-ecommerce-app-api/`
+
+### 12.2.1. Khởi tạo file cấu hình trung tâm `settings.py`
+
+**Giải thích:**
+
+[Phần 5](#phần-5-thư-mục-appcore---lưu-cấu-hình-trung-tâm) nêu rõ:
+> file `core/settings.py` là file cấu hình hệ thống. Nó phụ trách quản lí:
+>
+> - Biến môi trường, Database URL, Secret Key, CORS, Debug mode
+
+Mà trong file `test.py` ta có cấu hình kết nối MySQL bằng `DATABASE_URL` thế nên ta cần đưa nó vào trong file `core/settings.py`
+
+**form của file `settings.py` thông thường:**
+
+```py
+from pydantic_settings import BaseSettings
+from functools import lru_cache
+
+class Settings(BaseSettings):
+    
+    # import cấu hình ở đây
+
+    class Config:
+        env_file = '.env'              # load cấu hình từ file .env
+        env_file_encoding = 'utf-8'    # hỗ trợ emoji
+        case_sensitive = True          # phân biệt hoa thường
+    
+# lru_cache: chỉ tạo Settings 1 lần, dùng lại cho toàn app
+@lru_cache()
+def get_setting() -> Settings:
+    return Settings()
+
+# Instance dùng trực tiếp: from app.config import settings
+settings = Settings()
+
+```
+
+**Bây giờ thực hiện đưa cấu hình của `engine` vào file `settings.py`:**
+
+Cấu hình của engine khi ở trong file `test.py`:
+
+```py
+settings = [
+    {"DATABASE_URL" : "mysql+pymysql://root:password@localhost:3306/shop_db"},
+    {"DEBUG": True},
+    {"pool_size": 10},
+    {"max_overflow": 20},
+    {"pool_pre_ping": True}
+]
+
+engine = create_engine(
+    settings[0]['DATABASE_URL'],               # link kết nối database
+    echo=settings[1]['DEBUG'],                 # log SQL ra terminal khi debug
+    pool_size=settings[2]["pool_size"],        # số kết nối tối đa trong pool
+    max_overflow=settings[3]["max_overflow"],  # cho phép thêm 20 kết nối khi pool đầy
+    pool_pre_ping=settings[4]["pool_pre_ping"] # kiểm tra kết nối trước mỗi lần dùng
+)
+```
+
+Ta sẽ thực hiện import từng phần trong danh sách `settings` vào `settings.py`, như sau:
+
+```py
+from pydantic_settings import BaseSettings
+from functools import lru_cache
+
+class Settings(BaseSettings):
+    # Database - cấu hình của engine
+    DATABASE_URL: str= "mysql+pymysql://root:password@localhost:3306/shop_db"
+    DEBUG: bool= True
+    POOL_SIZE: int= 10
+    MAX_OVERFLOW: int= 20
+    POOL_PRE_PING: bool= True
+
+    class Config:
+        # đường dẫn tới '.env'
+        env_file = '.env'              # load cấu hình từ file .env
+        env_file_encoding = 'utf-8'    # hỗ trợ emoji
+        case_sensitive = True          # phân biệt hoa thường
+    
+# lru_cache: chỉ tạo Settings 1 lần, dùng lại cho toàn app
+@lru_cache()
+def get_setting() -> Settings:
+    return Settings()
+
+# Instance dùng trực tiếp: from app.config import settings
+settings = Settings()
+```
+
+> Cấu hình trung tâm đã khởi tạo xong, tuy nhiên vẫn còn nhiều rủi ro. Ta đã để lộ thông tin database, lẫn mật khẩu của nó. Để an toàn, ta sẽ chuyển thông tin nhạy cảm sang một file `.env` và load nó vào trong file `settings.py`
+
+### 12.2.2. Khởi tạo file `.env` - lưu thông tin nhạy cảm
+
+Ta chuyển các thông tin nhạy cảm từ file `settings.py` sang `.env`
+
+***`.env`:***
+
+```env
+# DATABASE_URL = "mysql+pymysql://root:password@localhost:3306/shop_db"
+DB_HOST = localhost
+DB_PORT = 3306
+DB_NAME = shop_db
+DB_USER = root
+DB_PASSWORD = password
+```
+
+Ở file `settings.py`, ta cần chỉnh sửa lại cho phù hợp.
+
+`settings.py`:
+
+```py
+from pydantic_settings import BaseSettings
+from functools import lru_cache
+
+class Settings(BaseSettings):
+    '''Cấu hình trung tâm'''
+    # Database - cấu hình của engine
+    DB_USER: str
+    DB_PASSWORD: str
+    DB_HOST: str
+    DB_PORT: int
+    DB_NAME: str
+    DEBUG: bool = True
+    POOL_SIZE: int= 10
+    MAX_OVERFLOW: int= 20
+    POOL_PRE_PING: bool= True
+
+    @property # khi call fun không cần () , settings.DATABASE_URL thay vì có thêm ()
+    def DATABASE_URL(self) -> str:
+        return(
+            # DB_USER, ... được load từ test/.env
+            f'mysql+pymysql://{self.DB_USER}:{self.DB_PASSWORD}'
+            f'@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
+            f'?charset=utf8mb4' # Hỗ trợ emoji và ký tự đặc biệt
+        )
+
+
+    class Config:
+        # đường dẫn tới '.env'
+        env_file = 'test/.env'        # load cấu hình từ file .env
+        env_file_encoding = 'utf-8'    # hỗ trợ emoji
+        case_sensitive = True          # phân biệt hoa thường
+    
+# lru_cache: chỉ tạo Settings 1 lần, dùng lại cho toàn app
+@lru_cache()
+def get_setting() -> Settings:
+    return Settings()
+
+# Instance dùng trực tiếp: from app.config import settings
+settings = Settings()
+```
+
+**Bây giờ để chắc chắn mã hoạt động, ta thực hiện test với file `test.py`, bằng cách import file `settings.py` và thay thế một số chỗ liên quan đến database trong file `test.py`.**
+
+Tuy nhiên, trước hết ta phải tạo file `__init__.py` để được coi là một package mới import được vào file `test.py`. Cấu trúc folder `test/` sẽ có thêm các file `__init__.py`:
+
+```
+test/__init__.py
+test/app/__init__.py
+test/app/core/__init__.py
+```
+
+Cấu trúc hiện tại `test/` tương tự như trong ảnh:
+
+![test folder](/assets/testpyfolder.png)
+
+***`test.py`:***
+
+Ta thay đoạn:
+```py
+settings = [
+    {"DATABASE_URL" : "mysql+pymysql://root:password@localhost:3306/shop_db"},
+    {"DEBUG": True},
+    {"pool_size": 10},
+    {"max_overflow": 20},
+    {"pool_pre_ping": True}
+]
+
+engine = create_engine(
+    settings[0]['DATABASE_URL'],               # link kết nối database
+    echo=settings[1]['DEBUG'],                 # log SQL ra terminal khi debug
+    pool_size=settings[2]["pool_size"],        # số kết nối tối đa trong pool
+    max_overflow=settings[3]["max_overflow"],  # cho phép thêm 20 kết nối khi pool đầy
+    pool_pre_ping=settings[4]["pool_pre_ping"] # kiểm tra kết nối trước mỗi lần dùng
+)
+```
+
+Thành:
+
+```py
+from test.app.core.settings import settings
+
+engine = create_engine(
+    settings.DATABASE_URL,               # link kết nối database
+    echo=settings.DEBUG,                 # log SQL ra terminal khi debug
+    pool_size=settings.POOL_SIZE,        # số kết nối tối đa trong pool
+    max_overflow=settings.MAX_OVERFLOW,  # cho phép thêm 20 kết nối khi pool đầy
+    pool_pre_ping=settings.POOL_PRE_PING # kiểm tra kết nối trước mỗi lần dùng
+)
+```
+
+Thực hiện chạy lại file `test.py`, với tham số test mới để không bị lỗi db, nếu file không báo lỗi (code) -> hoàn tất.
+
+Ví dụ, trong file `test.py`, ta có:
++ Cũ: `new_user = User(name="Son", email="son@example.com")`
++ Thay mới thành: `new_user = User(name="Hieu", email="Hieu@example.com")`
+
+
+Thực hiện chạy nếu không có lỗi -> hoàn tất.
+
