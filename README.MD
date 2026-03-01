@@ -52,6 +52,13 @@
   - [12.2. Triển khai code vào thư mục test](#122-triển-khai-code-vào-thư-mục-test)
     - [12.2.1. Khởi tạo file cấu hình trung tâm `settings.py`](#1221-khởi-tạo-file-cấu-hình-trung-tâm-settingspy)
     - [12.2.2. Khởi tạo file `.env` - lưu thông tin nhạy cảm](#1222-khởi-tạo-file-env---lưu-thông-tin-nhạy-cảm)
+    - [12.2.3. Chuyển mã từ `test.py` vào thư mục /test/app/database](#1223-chuyển-mã-từ-testpy-vào-thư-mục-testappdatabase)
+      - [12.2.3.1. Khởi tạo file `database.db` - Tạo Engine (kết nối database, cấu hình engine)](#12231-khởi-tạo-file-databasedb---tạo-engine-kết-nối-database-cấu-hình-engine)
+      - [12.2.3.2. Khởi tạo file `base.py` - Base ORM (Tạo class Base để các model kế thừa)](#12232-khởi-tạo-file-basepy---base-orm-tạo-class-base-để-các-model-kế-thừa)
+      - [12.2.3.3. Khởi tạo thư mục `models/` - khởi tạo, lưu trữ các bảng database](#12233-khởi-tạo-thư-mục-models---khởi-tạo-lưu-trữ-các-bảng-database)
+        - [12.2.3.3.1. Khởi tạo `models/models.py`](#122331-khởi-tạo-modelsmodelspy)
+    - [12.2.3.3.2. Khởi tạo `models/create_table.py` dùng để tạo bảng db trong MySQL - Mục tiêu của file này là import các file cấu trúc bảng như `models.py` (các file tương tự này mới chỉ viết cấu trúc bảng, chứ chưa tạo bảng trong MySQL)vào và sẽ thực hiện tạo bảng trong file này (điều này giúp các file lập bảng trông gọn, sạch)](#122332-khởi-tạo-modelscreate_tablepy-dùng-để-tạo-bảng-db-trong-mysql---mục-tiêu-của-file-này-là-import-các-file-cấu-trúc-bảng-như-modelspy-các-file-tương-tự-này-mới-chỉ-viết-cấu-trúc-bảng-chứ-chưa-tạo-bảng-trong-mysqlvào-và-sẽ-thực-hiện-tạo-bảng-trong-file-này-điều-này-giúp-các-file-lập-bảng-trông-gọn-sạch)
+    - [12.2.4. Test thành quả đến hết 12.2.3](#1224-test-thành-quả-đến-hết-1223)
 
 # Phần 1. Thiết lập cơ bản
 
@@ -622,11 +629,10 @@ Như vậy `repository/` chỉ lập hàm truy vấn database. Còn `services/` 
 ***`repository/` [file cụ thể xử lí] chỉ làm db:***
 
 ```py
-def create_task_service(db: Session, name: str):
-    if len(name) < 3:
-        raise ValueError("Tên quá ngắn")
-
-    return create_task(db, name)
+def create_task(db: Session, name: str):
+    task = Task(name=name)
+    db.add(task)
+    return task
 ```
 
 ***`services/` [file cụ thể xử lí] xử lý nghiệp vụ:***
@@ -641,7 +647,7 @@ def create_task_service(db: Session, name: str):
     return create_task(db, name)
 ```
 
-***`api/` (nói sau) chỉ có router gọi `service/`***
+***`api/` (nói sau) chỉ có router gọi `services/`***
 
 ```py
 @router.post("/", response_model=TaskResponse)
@@ -1167,6 +1173,7 @@ Cấu trúc hiện tại `test/` tương tự như trong ảnh:
 ***`test.py`:***
 
 Ta thay đoạn:
+
 ```py
 settings = [
     {"DATABASE_URL" : "mysql+pymysql://root:password@localhost:3306/shop_db"},
@@ -1202,9 +1209,139 @@ engine = create_engine(
 Thực hiện chạy lại file `test.py`, với tham số test mới để không bị lỗi db, nếu file không báo lỗi (code) -> hoàn tất.
 
 Ví dụ, trong file `test.py`, ta có:
-+ Cũ: `new_user = User(name="Son", email="son@example.com")`
-+ Thay mới thành: `new_user = User(name="Hieu", email="Hieu@example.com")`
 
+- Cũ: `new_user = User(name="Son", email="son@example.com")`
+- Thay mới thành: `new_user = User(name="Hieu", email="Hieu@example.com")`
 
 Thực hiện chạy nếu không có lỗi -> hoàn tất.
 
+### 12.2.3. Chuyển mã từ `test.py` vào thư mục /test/app/database
+
+#### 12.2.3.1. Khởi tạo file `database.db` - Tạo Engine (kết nối database, cấu hình engine)
+
+Ta sẽ chuyển phần `engine` trong file `test.py` vào file `database.py`
+
+***`database.py`:***
+
+```py
+from sqlalchemy import create_engine
+from test.app.core.settings import settings
+
+engine = create_engine(
+    settings.DATABASE_URL,               # link kết nối database
+    echo=settings.DEBUG,                 # log SQL ra terminal khi debug
+    pool_size=settings.POOL_SIZE,        # số kết nối tối đa trong pool
+    max_overflow=settings.MAX_OVERFLOW,  # cho phép thêm 20 kết nối khi pool đầy
+    pool_pre_ping=settings.POOL_PRE_PING # kiểm tra kết nối trước mỗi lần dùng
+)
+
+# SessionLocal: factory tạo ra mỗi session làm việc với database
+# autocommit=False -> ta tự commit -> an toàn hơn
+# autoflush=False -> không tự flush trước query
+from sqlalchemy.orm import sessionmaker
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+```
+
+#### 12.2.3.2. Khởi tạo file `base.py` - Base ORM (Tạo class Base để các model kế thừa)
+
+***`base.py`:***
+
+```py
+# Base: tất cả models phải kế thừa class này
+from sqlalchemy.ext.declarative import declarative_base
+Base = declarative_base()
+```
+
+#### 12.2.3.3. Khởi tạo thư mục `models/` - khởi tạo, lưu trữ các bảng database
+##### 12.2.3.3.1. Khởi tạo `models/models.py`
+**Trong `models/`, tạo `models.py` (file `models.py`) đề cập ở `test.py`**
+
+***`models.py`:***
+
+```py
+# Tạo bảng
+from sqlalchemy import Column, Integer, String
+from test.app.database.base import Base
+
+class User(Base):
+    __tablename__ = "users_test"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    email = Column(String(100), unique=True, index=True)
+```
+
+### 12.2.3.3.2. Khởi tạo `models/create_table.py` dùng để tạo bảng db trong MySQL - Mục tiêu của file này là import các file cấu trúc bảng như `models.py` (các file tương tự này mới chỉ viết cấu trúc bảng, chứ chưa tạo bảng trong MySQL)vào và sẽ thực hiện tạo bảng trong file này (điều này giúp các file lập bảng trông gọn, sạch)
+
+***`create_table.py`***
+
+```py
+from test.app.database.database import engine
+from test.app.database.base import Base
+
+# Tạo tất cả các bảng (được import từ models/ vào create_table.py) trong MySQL
+Base.metadata.create_all(bind=engine)
+```
+
+### 12.2.4. Test thành quả đến hết [12.2.3](#1223-chuyển-mã-từ-testpy-vào-thư-mục-testappdatabase)
+
+**Sửa đổi file `test.py`, thành cấu trúc mới**
+
+***`test.py`:***
+
+```py
+from sqlalchemy import create_engine
+from test.app.core.settings import settings
+
+engine = create_engine(
+    settings.DATABASE_URL,               # link kết nối database
+    echo=settings.DEBUG,                 # log SQL ra terminal khi debug
+    pool_size=settings.POOL_SIZE,        # số kết nối tối đa trong pool
+    max_overflow=settings.MAX_OVERFLOW,  # cho phép thêm 20 kết nối khi pool đầy
+    pool_pre_ping=settings.POOL_PRE_PING # kiểm tra kết nối trước mỗi lần dùng
+)
+
+# SessionLocal: factory tạo ra mỗi session làm việc với database
+from test.app.database.database import SessionLocal
+
+# Base: tất cả models phải kế thừa class này
+from test.app.database.base import Base
+
+##############################################################################
+# Test chức năng xem kết nối được chưa
+##############################################################################
+
+# models.py (tạo bảng mẫu)
+from test.app.database.models.models import User
+
+# create_table.py (tạo bảng trong db)
+from test.app.database.models import create_table # import cả file create_table
+create_table # Gọi cả file create_table
+
+# test_insert.py (test kết nối + thêm dữ liệu)
+# from database import SessionLocal
+# from models import User
+db = SessionLocal()
+
+try: 
+    new_user = User(name="Hieu", email="Hieu@example.com")
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    print("Thêm user thành công:", new_user.id)
+except Exception as e:
+    db.rollback()
+    print("Lỗi:", e)
+finally:
+    db.close()
+
+# Viết đến đây, chạy -> kiểm tra database
+```
+
+Nếu thực hiện đến đây, và không có lỗi xảy ra -> thành công.
+
+**Cấu trúc thư mục `test/` đến thời điểm hiện tại như sau:**
+
+![alt text](/assets/image.png)
+
+Trong `test/` có một số thư mục `__pycache__` là thư mục khi chạy module `__init__` tạo ra, không quan trọng. Ta muốn loại bỏ chúng khi push lên github thì thêm `__pycache__` vào file `.gitignore`

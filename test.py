@@ -10,33 +10,21 @@ engine = create_engine(
 )
 
 # SessionLocal: factory tạo ra mỗi session làm việc với database
-# autocommit=False -> ta tự commit -> an toàn hơn
-# autoflush=False -> không tự flush trước query
-from sqlalchemy.orm import sessionmaker
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+from test.app.database.database import SessionLocal
 
 # Base: tất cả models phải kế thừa class này
-from sqlalchemy.ext.declarative import declarative_base
-Base = declarative_base()
+from test.app.database.base import Base
 
 ##############################################################################
 # Test chức năng xem kết nối được chưa
 ##############################################################################
 
 # models.py (tạo bảng mẫu)
-# from database import Base
-from sqlalchemy import Column, Integer, String
-class User(Base):
-    __tablename__ = "users_test"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), nullable=False)
-    email =  Column(String(100), unique=True, index=True)
+from test.app.database.models.models import User
 
 # create_table.py (tạo bảng trong db)
-# from database import engine, Base
-# import models # file models.py
-Base.metadata.create_all(bind=engine)
-print('Tạo bảng thành công') # Viết đến đây, chạy -> kiểm tra database
+from test.app.database.models import create_table # import cả file create_table
+create_table # Gọi cả file create_table
 
 # test_insert.py (test kết nối + thêm dữ liệu)
 # from database import SessionLocal
