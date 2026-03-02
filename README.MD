@@ -69,6 +69,16 @@
     - [Phần 13.2.3. Khởi tạo file `services/services.py`](#phần-1323-khởi-tạo-file-servicesservicespy)
     - [Phần 13.2.4. Khởi tạo file `api/api.py`](#phần-1324-khởi-tạo-file-apiapipy)
   - [13.3. Test thành quả đến hết 13.2](#133-test-thành-quả-đến-hết-132)
+- [Phần 14. \[Dự án chính thức\] - Kết Nối Database](#phần-14-dự-án-chính-thức---kết-nối-database)
+  - [14.1. MySQL - Tạo cơ sở dữ liệu liệu và cấp quyền cho user](#141-mysql---tạo-cơ-sở-dữ-liệu-liệu-và-cấp-quyền-cho-user)
+  - [14.2. Cấu hình kết nối database](#142-cấu-hình-kết-nối-database)
+    - [14.2.1. Thiết lập file cấu hình nhạy cảm `.env`](#1421-thiết-lập-file-cấu-hình-nhạy-cảm-env)
+    - [14.2.2. Thiết lập file `app/core/settings.py` - Cấu hình trung tâm](#1422-thiết-lập-file-appcoresettingspy---cấu-hình-trung-tâm)
+      - [Cấu hình chung của các file `settings.py` khi khởi tạo](#cấu-hình-chung-của-các-file-settingspy-khi-khởi-tạo)
+      - [Import cấu hình kết nối database từ `.env` vào `settings.py`](#import-cấu-hình-kết-nối-database-từ-env-vào-settingspy)
+    - [14.2.3. Thực hiện quá trình test có lỗi không](#1423-thực-hiện-quá-trình-test-có-lỗi-không)
+    - [14.2.4. Chuyển phần 14.2.3 vào các file trong `database/`](#1424-chuyển-phần-1423-vào-các-file-trong-database)
+    - [14.2.3. Thực hiện quá trình test lỗi](#1423-thực-hiện-quá-trình-test-lỗi)
 
 # Phần 1. Thiết lập cơ bản
 
@@ -1047,7 +1057,7 @@ class Settings(BaseSettings):
 def get_setting() -> Settings:
     return Settings()
 
-# Instance dùng trực tiếp: from app.config import settings
+# Instance dùng trực tiếp: app.core import settings
 settings = Settings()
 
 ```
@@ -1099,7 +1109,7 @@ class Settings(BaseSettings):
 def get_setting() -> Settings:
     return Settings()
 
-# Instance dùng trực tiếp: from app.config import settings
+# Instance dùng trực tiếp: app.core import settings
 settings = Settings()
 ```
 
@@ -1162,7 +1172,7 @@ class Settings(BaseSettings):
 def get_setting() -> Settings:
     return Settings()
 
-# Instance dùng trực tiếp: from app.config import settings
+# Instance dùng trực tiếp: app.core import settings
 settings = Settings()
 ```
 
@@ -1928,4 +1938,227 @@ Thực hiện chạy file `test.py` không có lỗi -> ok.
 
 > Hoàn thiện logic backend cơ bản
 
+
+# Phần 14. [Dự án chính thức] - Kết Nối Database
+## 14.1. MySQL - Tạo cơ sở dữ liệu liệu và cấp quyền cho user
+
+> **Lưu ý:** Nếu đã có cơ sở dữ liệu và đã cấp quyền cho user thì không phải làm phần này.
+
+**Phần này thao tác trên MySQL:**
+
+Giả sử, ta có tài khoản `root`, bây giờ ta sẽ tạo một database: `e_commerce` và tạo một `user` sau đó cấp quyền cho nó.
+
+***`query`:***
+
+```sql
+CREATE DATABASE e_commerce;
+
+CREATE USER 'your_name'@'localhost' IDENTIFIED BY 'your_password';
+
+GRANT ALL ON e_commerce.* TO 'your_name'@'localhost'
+```
+
+Kết nối với user vừa được tạo:
+
+![Pasted image 20260302145026.png](/assets/connect.png)
+
+## 14.2. Cấu hình kết nối database
+### 14.2.1. Thiết lập file cấu hình nhạy cảm `.env`
+
+> Trong file này, ta sẽ lưu tài khoản, mật khẩu, ... (những thông tin không để bị lộ để tránh mất dữ liệu, database, ...)
+
+***`.env` - file `env` nằm ngoài thư mục `test/`:***
+
+![Pasted image 20260302150332.png](/assets/Pasted%20image%2020260302150332.png)
+
+```env
+# DATABASE_URL = "mysql+pymysql://root:password@localhost:3306/shop_db"
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=e_commerce
+DB_USER=your_name
+DB_PASSWORD=your_password
+```
+
+### 14.2.2. Thiết lập file `app/core/settings.py` - Cấu hình trung tâm
+
+> Import thông tin, dữ liệu nhạy cảm từ file `.env` vào file `settings.py`
+
+#### Cấu hình chung của các file `settings.py` khi khởi tạo
+***`settings.py`:***
+
+```python
+from pydantic_settings import BaseSettings
+from functools import lru_cache
+
+class Settings(BaseSettings):
+
+    # import cấu hình ở đây
+
+    class Config:
+        env_file = '.env'           # path đến file .env
+        env_file_encoding = 'utf-8' # hỗ trợ emoji
+        case_sensitive = True       # phân biệt hoa/thường
+
+# Cho phép tái sử dụng
+@lru_cache
+def get_setting() -> Settings:
+    return Settings()
+
+# Instance dùng trực tiếp: from app.core import settings
+settings = Settings()
+```
+
+#### Import cấu hình kết nối database từ `.env` vào `settings.py`
+
+***`settings.py`:***
+
+```python
+from pydantic_settings import BaseSettings
+from functools import lru_cache
+
+class Settings(BaseSettings):
+    # Database - Import cấu hình từ .env
+    DB_USER: str=''
+    DB_PASSWORD: str=''
+    DB_HOST: str=''
+    DB_PORT: str=''
+    DB_NAME: str=''
+    POOL_SIZE: int=10          # số kết nối tối thiểu
+    MAX_OVERFLOW: int=20       # số kết nối mở thêm khi quá tải -> max 30 kết nối
+    POOL_PRE_PING: bool=True   # kiểm tra Ping trước khi bắt đầu
+    DEBUG: bool=True
+
+    @property
+    def DATABASE_URL(self) -> str:
+        return(
+            f'mysql+pymysql://{self.DB_USER}:{self.DB_PASSWORD}'
+            f'@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
+            f'?charset=utf8mb4' # hỗ trợ emoji và kí tự đặc biệt
+        )
+
+    class Config:
+        env_file = '.env'           # path đến file .env
+        env_file_encoding = 'utf-8' # hỗ trợ emoji
+        case_sensitive = True       # phân biệt hoa/thường
+
+# Cho phép tái sử dụng
+@lru_cache
+def get_setting() -> Settings:
+    return Settings()
+
+# Instance dùng trực tiếp: from app.core import settings
+settings = Settings()
+```
+
+### 14.2.3. Thực hiện quá trình test có lỗi không
+
+Trong file `test.py`, ta sẽ thiết lập cấu hình `engine` để kết nối với database.
+
+***`test.py`:***
+
+```python
+from app.core.settings import settings
+
+# test kết nối database
+from sqlalchemy import create_engine
+engine = create_engine(
+    settings.DATABASE_URL,
+    echo=settings.DEBUG,
+    pool_size=settings.POOL_SIZE,
+    max_overflow=settings.MAX_OVERFLOW,
+    pool_pre_ping=settings.POOL_PRE_PING
+)
+
+
+# Test
+from sqlalchemy.orm import sessionmaker
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import String, Integer, Column
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = 'users_test'
+
+    id=Column(Integer, primary_key=True, index=True)
+    name=Column(String(100), nullable=True)
+    email=Column(String(100), unique=True, index=True)
+
+Base.metadata.create_all(bind=engine)
+print("Tạo bảng thành công")
+```
+
+> Build: Không có lỗi xảy ra -> OK.
+
+### 14.2.4. Chuyển phần [14.2.3](#1423-thực-hiện-quá-trình-test-có-lỗi-không) vào các file trong `database/`
+***`database/database.py`:***
+
+```python
+from app.core.settings import settings
+
+# test kết nối database
+from sqlalchemy import create_engine
+engine = create_engine(
+    settings.DATABASE_URL,
+    echo=settings.DEBUG,
+    pool_size=settings.POOL_SIZE,
+    max_overflow=settings.MAX_OVERFLOW,
+    pool_pre_ping=settings.POOL_PRE_PING
+)
+```
+
+***`database/session.py`:***
+```python
+from app.database.database import engine
+from sqlalchemy.orm import sessionmaker
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    except Exception as e:
+        db.rollback()
+        raise e
+    finally:
+        db.close()
+```
+
+***`database/base.py`:***
+
+```python
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+```
+
+### 14.2.3. Thực hiện quá trình test lỗi
+
+***`test.py`:***
+
+```python
+from app.database.database import engine
+from app.database.base import Base
+
+from sqlalchemy import String, Integer, Column
+
+class User(Base):
+    __tablename__ = 'users_test'
+
+    id=Column(Integer, primary_key=True, index=True)
+    name=Column(String(100), nullable=True)
+    email=Column(String(100), unique=True, index=True)
+
+Base.metadata.create_all(bind=engine)
+print("Tạo bảng thành công")
+```
+
+> Build: Không có lỗi xảy ra -> OK.
 
