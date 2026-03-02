@@ -8,9 +8,3 @@ engine = create_engine(
     max_overflow=settings.MAX_OVERFLOW,  # cho phép thêm 20 kết nối khi pool đầy
     pool_pre_ping=settings.POOL_PRE_PING # kiểm tra kết nối trước mỗi lần dùng
 )
-
-# SessionLocal: factory tạo ra mỗi session làm việc với database
-# autocommit=False -> ta tự commit -> an toàn hơn
-# autoflush=False -> không tự flush trước query
-from sqlalchemy.orm import sessionmaker
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

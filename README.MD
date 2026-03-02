@@ -47,7 +47,7 @@
     - [11.2.3. Phân quyền](#1123-phân-quyền)
   - [Lưu ý](#lưu-ý)
   - [11.3. Mối quan hệ với `core/`](#113-mối-quan-hệ-với-core)
-- [Phần 12. Kết nối database MySQL](#phần-12-kết-nối-database-mysql)
+- [Phần 12. Kết nối database MySQL - Test](#phần-12-kết-nối-database-mysql---test)
   - [12.1. Triển khai code test](#121-triển-khai-code-test)
   - [12.2. Triển khai code vào thư mục test](#122-triển-khai-code-vào-thư-mục-test)
     - [12.2.1. Khởi tạo file cấu hình trung tâm `settings.py`](#1221-khởi-tạo-file-cấu-hình-trung-tâm-settingspy)
@@ -57,8 +57,18 @@
       - [12.2.3.2. Khởi tạo file `base.py` - Base ORM (Tạo class Base để các model kế thừa)](#12232-khởi-tạo-file-basepy---base-orm-tạo-class-base-để-các-model-kế-thừa)
       - [12.2.3.3. Khởi tạo thư mục `models/` - khởi tạo, lưu trữ các bảng database](#12233-khởi-tạo-thư-mục-models---khởi-tạo-lưu-trữ-các-bảng-database)
         - [12.2.3.3.1. Khởi tạo `models/models.py`](#122331-khởi-tạo-modelsmodelspy)
-    - [12.2.3.3.2. Khởi tạo `models/create_table.py` dùng để tạo bảng db trong MySQL - Mục tiêu của file này là import các file cấu trúc bảng như `models.py` (các file tương tự này mới chỉ viết cấu trúc bảng, chứ chưa tạo bảng trong MySQL)vào và sẽ thực hiện tạo bảng trong file này (điều này giúp các file lập bảng trông gọn, sạch)](#122332-khởi-tạo-modelscreate_tablepy-dùng-để-tạo-bảng-db-trong-mysql---mục-tiêu-của-file-này-là-import-các-file-cấu-trúc-bảng-như-modelspy-các-file-tương-tự-này-mới-chỉ-viết-cấu-trúc-bảng-chứ-chưa-tạo-bảng-trong-mysqlvào-và-sẽ-thực-hiện-tạo-bảng-trong-file-này-điều-này-giúp-các-file-lập-bảng-trông-gọn-sạch)
+        - [12.2.3.3.2. Khởi tạo `models/create_table.py` dùng để tạo bảng db trong MySQL - Mục tiêu của file này là import các file cấu trúc bảng như `models.py` (các file tương tự này mới chỉ viết cấu trúc bảng, chứ chưa tạo bảng trong MySQL)vào và sẽ thực hiện tạo bảng trong file này (điều này giúp các file lập bảng trông gọn, sạch)](#122332-khởi-tạo-modelscreate_tablepy-dùng-để-tạo-bảng-db-trong-mysql---mục-tiêu-của-file-này-là-import-các-file-cấu-trúc-bảng-như-modelspy-các-file-tương-tự-này-mới-chỉ-viết-cấu-trúc-bảng-chứ-chưa-tạo-bảng-trong-mysqlvào-và-sẽ-thực-hiện-tạo-bảng-trong-file-này-điều-này-giúp-các-file-lập-bảng-trông-gọn-sạch)
     - [12.2.4. Test thành quả đến hết 12.2.3](#1224-test-thành-quả-đến-hết-1223)
+- [Phần 13. Viết API, Thực hiện truy vấn - Test](#phần-13-viết-api-thực-hiện-truy-vấn---test)
+  - [13.1. Triển khai code test](#131-triển-khai-code-test)
+  - [13.2. Triển khai code từ `test.py` vào thư mục `test/`](#132-triển-khai-code-từ-testpy-vào-thư-mục-test)
+    - [13.2.1. Cấu trúc folder](#1321-cấu-trúc-folder)
+    - [13.2.1. Khởi tạo file `database/session.py` lưu hàm `get_db()`, sau đó import vào `database.py`](#1321-khởi-tạo-file-databasesessionpy-lưu-hàm-get_db-sau-đó-import-vào-databasepy)
+    - [13.2.2. Khởi tạo file `schemas/schemas.py`](#1322-khởi-tạo-file-schemasschemaspy)
+    - [12.2.3. Khởi tạo file `repository/repository.py`](#1223-khởi-tạo-file-repositoryrepositorypy)
+    - [Phần 13.2.3. Khởi tạo file `services/services.py`](#phần-1323-khởi-tạo-file-servicesservicespy)
+    - [Phần 13.2.4. Khởi tạo file `api/api.py`](#phần-1324-khởi-tạo-file-apiapipy)
+  - [13.3. Test thành quả đến hết 13.2](#133-test-thành-quả-đến-hết-132)
 
 # Phần 1. Thiết lập cơ bản
 
@@ -920,7 +930,7 @@ middlewares → dùng cấu hình để xử lý request toàn cục
 dependencies → dùng cấu hình để xử lý logic HTTP
 services → dùng utility để xử lý nghiệp vụ
 
-# Phần 12. Kết nối database MySQL
+# Phần 12. Kết nối database MySQL - Test
 
 > Thư mục `test/` có thể được coi như thư mục `e-commerce-app-api/`
 
@@ -1253,7 +1263,9 @@ Base = declarative_base()
 ```
 
 #### 12.2.3.3. Khởi tạo thư mục `models/` - khởi tạo, lưu trữ các bảng database
+
 ##### 12.2.3.3.1. Khởi tạo `models/models.py`
+
 **Trong `models/`, tạo `models.py` (file `models.py`) đề cập ở `test.py`**
 
 ***`models.py`:***
@@ -1270,7 +1282,7 @@ class User(Base):
     email = Column(String(100), unique=True, index=True)
 ```
 
-### 12.2.3.3.2. Khởi tạo `models/create_table.py` dùng để tạo bảng db trong MySQL - Mục tiêu của file này là import các file cấu trúc bảng như `models.py` (các file tương tự này mới chỉ viết cấu trúc bảng, chứ chưa tạo bảng trong MySQL)vào và sẽ thực hiện tạo bảng trong file này (điều này giúp các file lập bảng trông gọn, sạch)
+##### 12.2.3.3.2. Khởi tạo `models/create_table.py` dùng để tạo bảng db trong MySQL - Mục tiêu của file này là import các file cấu trúc bảng như `models.py` (các file tương tự này mới chỉ viết cấu trúc bảng, chứ chưa tạo bảng trong MySQL)vào và sẽ thực hiện tạo bảng trong file này (điều này giúp các file lập bảng trông gọn, sạch)
 
 ***`create_table.py`***
 
@@ -1335,7 +1347,7 @@ except Exception as e:
 finally:
     db.close()
 
-# Viết đến đây, chạy -> kiểm tra database
+# Viết đến đây, chạy -> kiểm tra database 
 ```
 
 Nếu thực hiện đến đây, và không có lỗi xảy ra -> thành công.
@@ -1345,3 +1357,564 @@ Nếu thực hiện đến đây, và không có lỗi xảy ra -> thành công.
 ![alt text](/assets/image.png)
 
 Trong `test/` có một số thư mục `__pycache__` là thư mục khi chạy module `__init__` tạo ra, không quan trọng. Ta muốn loại bỏ chúng khi push lên github thì thêm `__pycache__` vào file `.gitignore`
+
+# Phần 13. Viết API, Thực hiện truy vấn - Test
+
+## 13.1. Triển khai code test
+
+Điều chỉnh lại trước khi bổ sung, ở file `test.py`, ta sẽ bỏ đoạn và sẽ chỉnh sửa phần này ở phía dưới:
+
+```py
+# test_insert.py (test kết nối + thêm dữ liệu)
+# from database import SessionLocal
+# from models import User
+db = SessionLocal()
+
+try: 
+    new_user = User(name="Hieu", email="Hieu@example.com")
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    print("Thêm user thành công:", new_user.id)
+except Exception as e:
+    db.rollback()
+    print("Lỗi:", e)
+finally:
+    db.close()
+```
+
+***`test.py` - Tiếp tục triển khai vào cuối file:***
+
+```py
+from sqlalchemy import create_engine
+from test.app.core.settings import settings
+
+engine = create_engine(
+    settings.DATABASE_URL,               # link kết nối database
+    echo=settings.DEBUG,                 # log SQL ra terminal khi debug
+    pool_size=settings.POOL_SIZE,        # số kết nối tối đa trong pool
+    max_overflow=settings.MAX_OVERFLOW,  # cho phép thêm 20 kết nối khi pool đầy
+    pool_pre_ping=settings.POOL_PRE_PING # kiểm tra kết nối trước mỗi lần dùng
+)
+
+# SessionLocal: factory tạo ra mỗi session làm việc với database
+from test.app.database.database import SessionLocal
+
+# Base: tất cả models phải kế thừa class này
+from test.app.database.base import Base
+
+##############################################################################
+# Test chức năng xem kết nối được chưa
+##############################################################################
+
+# models.py (tạo bảng mẫu)
+from test.app.database.models.models import User
+
+# create_table.py (tạo bảng trong db)
+from test.app.database.models import create_table # import cả file create_table
+create_table # Gọi cả file create_table
+
+
+# Viết đến đây, chạy -> kiểm tra database
+
+##############################################################################
+# Phần 13. Viết API, Thực hiện truy vấn - Test
+##############################################################################
+# test_insert.py (test kết nối + thêm dữ liệu)
+# from database import SessionLocal
+# from models import User
+def get_db():
+    '''
+    Sử dụng trọng FastAPI với Depend
+    @app.get('/users')
+    def get_users(db: Session = Depends(get_db)):
+        ....
+    '''
+    db = SessionLocal()
+    try:
+        yield db    # trả session cho api (endpoint) sử dụng
+        # db.commit() # tự động commit -> lưu vào MySQL
+    except Exception as e:
+        db.rollback()    # Rollback nếu có lỗi
+        raise e  # ném lỗi
+    finally:
+        db.close() # luôn đóng session để trả kết quả kết nối
+
+# schemas/ -> bộ lọc định nghĩa dữ liệu đầu vào, ra 
+# các class trong schemas kế thừa từ BaseModel 
+from pydantic import BaseModel
+class UserCreate(BaseModel): # Dùng để xem user
+    name: str
+
+# Dữ liệu trả về sau khi tạo thành công
+class UserResponse(BaseModel):       # Dùng để import user
+    id: int
+    name: str
+
+
+# services/ -> thực hiện nghiệp vụ truy vấn user
+# import sechmas/
+# from test.app.database.models.models import User
+from fastapi import HTTPException, Depends
+from sqlalchemy.orm import Session
+def get_user_services(id: int, db: Session):
+    # Xem lại phần code bị lược bỏ phần trước và so sánh thấy rõ hơn 
+    user = db.query(User).filter(User.id == id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user
+
+def create_user_services(db: Session, user_in: UserCreate):
+    '''Tạo mới user và lưu vào database'''
+    db_user = User(name=user_in.name) # tạo đối tượng User từ dữ liệu đầu vào
+    db.add(db_user) # thêm vào session
+    db.commit()
+    db.refresh(db_user) # cập nhật đối tượng với id tự tăng từ database
+    return db_user
+
+
+
+# api/ -> chỉ gọi services/ đã xử lí nghiệp vụ
+# from test_insert import get_db
+# from services import ...
+from fastapi import FastAPI, APIRouter #, Depends
+from sqlalchemy.orm import Session
+app = FastAPI()
+router = APIRouter()
+
+@router.get('/users/{id}')
+def get_user(id: int, db: Session = Depends(get_db)):
+    '''
+    1. FastAPI gọi get_db()
+    2. Tạo session
+    3. yield db -> truyền db vào endpoint
+    4. endpoint chạy xong
+    5. Quay lại get_db()
+    6. commit() hoặc rollback
+    7. close session
+
+    Ví dụ:
+        @app.post("/users")
+        def create_user(db: Session = Depends(get_db)):
+            user = User(name="A")
+            db.add(user)
+    Luồng:
+        get_db()
+          └─ tạo session
+          └─ yield db → truyền vào create_user
+              └─ db.add(user)
+          └─ quay lại get_db()
+          └─ db.commit()
+          └─ db.close()
+    Nếu lỗi:
+        db.add(user)
+        → lỗi
+        → except
+        → rollback
+        → close
+    '''
+    return get_user_services(id, db)
+
+# Viết đến đây rồi chạy -> không lỗi -> ok
+
+@router.post('/users', response_model=UserResponse, status_code=201)
+def create_user(user_in: UserCreate, db: Session=Depends(get_db)):
+    """
+    Tạo user mới
+    
+    Luồng thực thi:
+    1. FastAPI validate request body → UserCreate
+    2. Gọi get_db() → yield session
+    3. Gọi create_user_service() → add + commit + refresh
+    4. Trả về UserResponse với id mới sinh
+    """
+    return create_user_services(db, user_in)
+
+# Viết đến đây rồi chạy -> không lỗi -> ok
+
+app.include_router(router)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, port=8000)
+```
+
+Khi chạy trên terminal, không có thông báo lỗi -> ta đã hoàn thiện được toàn bộ logic của một backend cơ bản.
+
+**Liên hệ với phần [3.3. Thiết kế chuẩn REST API - Thiết kế lại 3.2](#33-thiết-kế-chuẩn-rest-api---thiết-kế-lại-32):**
+
+```py
+from fastapi import FastAPI, APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import Dict
+
+app = FastAPI()
+router = APIRouter()
+
+task_list = []
+
+# schemas/                   <- schemas định nghĩa cấu trúc dữ liệu
+# Định nghĩa model
+class TaskCreate(BaseModel): # Dùng để xem task
+    name: str
+
+class Task(BaseModel):       # Dùng để import task
+    id: int
+    name: str
+
+# api/                       <- router
+@router.post('/', response_model=Task, status_code=201)
+def add_task(task: TaskCreate):
+    # toàn bộ phần dưới là nghiệp vụ serviecs/ trừ dòng return
+    new_task = {
+        "id": len(task_list),
+        "name": task.name
+    }
+
+    task_list.append(new_task)
+    return new_task
+
+# api/                       <- router
+@router.get('/{id}')
+def get_task(id: int):
+    # toàn bộ phần dưới là nghiệp vụ serviecs/ trừ dòng return
+    res = next((task for task in task_list if task["id"] == id), None)
+
+    if res is None:
+        raise HTTPException(status_code=404, detail="Không tìm thấy nhiệm vụ")
+
+    return res
+
+app.include_router(router)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, port=8000)
+```
+
+## 13.2. Triển khai code từ `test.py` vào thư mục `test/`
+
+### 13.2.1. Cấu trúc folder
+
+```
+test/
+   app/
+     api/
+     schemas/
+     services/
+```
+
+**Thứ tự triển khai:**
+- Dữ liệu đầu vào phải được định dạng, chuẩn hóa thông qua bộ lọc -> `schemas/`
+- Thực hiện nghiệp vụ (lấy dữ liệu -> thao tác trên dữ liệu) -> `services/`
+- Gọi các hàm nghiệp vụ sử dụng trong router -> `api/`
+
+Ngoài ra, các hàm truy vấn dữ liệu sẽ được đặt trong folder `repository/`. Ta có cấu trúc thư mục chuẩn là:
+
+![img](/assets/image%20copy%202.png)
+
+Và thứ tự triển khai chuẩn là:
+- Dữ liệu đầu vào phải được định dạng, chuẩn hóa thông qua bộ lọc -> `schemas/`
+- Các hàm truy vấn được viết trong `repository/`
+- Thực hiện nghiệp vụ (lấy dữ liệu -> dùng các hàm truy vấn trong `repository/` thao tác trên dữ liệu) -> `services/`
+- Gọi các hàm nghiệp vụ sử dụng trong router -> `api/`
+
+Do đó ta sẽ điều chỉnh lại trong code cũ như sau:
+
+```py
+from sqlalchemy import create_engine
+from test.app.core.settings import settings
+
+engine = create_engine(
+    settings.DATABASE_URL,               # link kết nối database
+    echo=settings.DEBUG,                 # log SQL ra terminal khi debug
+    pool_size=settings.POOL_SIZE,        # số kết nối tối đa trong pool
+    max_overflow=settings.MAX_OVERFLOW,  # cho phép thêm 20 kết nối khi pool đầy
+    pool_pre_ping=settings.POOL_PRE_PING # kiểm tra kết nối trước mỗi lần dùng
+)
+
+# SessionLocal: factory tạo ra mỗi session làm việc với database
+from test.app.database.database import SessionLocal
+
+# Base: tất cả models phải kế thừa class này
+from test.app.database.base import Base
+
+##############################################################################
+# Test chức năng xem kết nối được chưa
+##############################################################################
+
+# models.py (tạo bảng mẫu)
+from test.app.database.models.models import User
+
+# create_table.py (tạo bảng trong db)
+from test.app.database.models import create_table # import cả file create_table
+create_table # Gọi cả file create_table
+
+
+# Viết đến đây, chạy -> kiểm tra database
+
+##############################################################################
+# Phần 13. Viết API, Thực hiện truy vấn - Test
+##############################################################################
+# test_insert.py (test kết nối + thêm dữ liệu)
+# from database import SessionLocal
+# from models import User
+def get_db():
+    '''
+    Sử dụng trọng FastAPI với Depend
+    @app.get('/users')
+    def get_users(db: Session = Depends(get_db)):
+        ....
+    '''
+    db = SessionLocal()
+    try:
+        yield db    # trả session cho api (endpoint) sử dụng
+        # db.commit() # tự động commit -> lưu vào MySQL
+        # nếu dùng db.commit ở đây -> một số hàm repository/ như create_user sẽ phải thay db.commit()  thành db.flush()
+    except Exception as e:
+        db.rollback()    # Rollback nếu có lỗi
+        raise e  # ném lỗi
+    finally:
+        db.close() # luôn đóng session để trả kết quả kết nối
+
+# schemas/ -> bộ lọc định nghĩa dữ liệu đầu vào, ra 
+# các class trong schemas kế thừa từ BaseModel 
+from pydantic import BaseModel
+class UserCreate(BaseModel): # Dùng để xem user
+    name: str
+
+# Dữ liệu trả về sau khi tạo thành công
+class UserResponse(BaseModel):       # Dùng để import user
+    id: int
+    name: str
+
+
+# repository/ -> viết các hàm truy vấn
+# from test.app.database.models.models import User
+# from test.app.schemas.schemas import UserCreate
+from fastapi import HTTPException, Depends
+from sqlalchemy.orm import Session
+def get_user_respository(id: int, db:Session):
+    return db.query(User).filter(User.id == id).first()
+
+def create_user_respository(db: Session, user_in: UserCreate):
+    '''Tạo mới user và lưu vào database'''
+    db_user = User(name=user_in.name) # tạo đối tượng User từ dữ liệu đầu vào
+    db.add(db_user) # thêm vào session
+    db.commit() # thay thành db.flush() nếu get_db() để db.commit()
+    db.refresh(db_user) # cập nhật đối tượng với id tự tăng từ database
+    return db_user
+
+# services/ -> thực hiện nghiệp vụ truy vấn user
+# import sechmas/
+# import respository/
+from fastapi import HTTPException, Depends
+from sqlalchemy.orm import Session
+def get_user_services(id: int, db: Session):
+    # Xem lại phần code bị lược bỏ phần trước và so sánh thấy rõ hơn 
+    user = get_user_respository(id, db)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user
+
+def create_user_services(db: Session, user_in: UserCreate):
+    return create_user_respository(db, user_in)
+
+
+
+# api/ -> chỉ gọi services/ đã xử lí nghiệp vụ
+# from test_insert import get_db
+# from models.user import User
+# from services import ...
+from fastapi import FastAPI, APIRouter #, Depends
+from sqlalchemy.orm import Session
+app = FastAPI()
+router = APIRouter()
+
+@router.get('/users/{id}')
+def get_user(id: int, db: Session = Depends(get_db)):
+    return get_user_services(id, db)
+
+# Viết đến đây rồi chạy -> không lỗi -> ok
+
+@router.post('/users', response_model=UserResponse, status_code=201)
+def create_user(user_in: UserCreate, db: Session=Depends(get_db)):
+    return create_user_services(db, user_in)
+
+# Viết đến đây rồi chạy -> không lỗi -> ok
+
+app.include_router(router)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, port=8000)
+```
+
+### 13.2.1. Khởi tạo file `database/session.py` lưu hàm `get_db()`, sau đó import vào `database.py`
+
+**Giải thích: Liên hệ [Phần 6.Thư mục app/database - Kết nối database](#phần-6-thư-mục-appdatabase---kết-nối-database)**
+
+File `session.py` Quản lý session (mỗi request có 1 session riêng, tránh rò rỉ khi kết nối)
+
+Trong file `database.py` đang có đoạn mã sau:
+
+```py
+# SessionLocal: factory tạo ra mỗi session làm việc với database
+# autocommit=False -> ta tự commit -> an toàn hơn
+# autoflush=False -> không tự flush trước query
+from sqlalchemy.orm import sessionmaker
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+```
+
+Nó thuộc `session` do đó ta sẽ chuyển nó sang file `session.py` cùng với `get_db()`.
+
+***`session.py`:***
+
+```py
+# SessionLocal: factory tạo ra mỗi session làm việc với database
+# autocommit=False -> ta tự commit -> an toàn hơn
+# autoflush=False -> không tự flush trước query
+from sqlalchemy.orm import sessionmaker
+
+from test.app.database.database import engine # import  hàm engine trong database.py
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    except Exception as e:
+        db.rollback()
+        raise e
+    finally:
+        db.close()
+```
+
+***`database.py`:***
+
+```py
+from sqlalchemy import create_engine
+from test.app.core.settings import settings
+
+engine = create_engine(
+    settings.DATABASE_URL,               # link kết nối database
+    echo=settings.DEBUG,                 # log SQL ra terminal khi debug
+    pool_size=settings.POOL_SIZE,        # số kết nối tối đa trong pool
+    max_overflow=settings.MAX_OVERFLOW,  # cho phép thêm 20 kết nối khi pool đầy
+    pool_pre_ping=settings.POOL_PRE_PING # kiểm tra kết nối trước mỗi lần dùng
+)
+```
+
+### 13.2.2. Khởi tạo file `schemas/schemas.py`
+
+***`schemas.py`:***
+
+```py
+from pydantic import BaseModel
+
+class UserCreate(BaseModel): # Dùng để xem user
+    name: str
+
+# Dữ liệu trả về sau khi tạo thành công
+class UserResponse(BaseModel):       # Dùng để import user
+    id: int
+    name: str
+```
+
+### 12.2.3. Khởi tạo file `repository/repository.py`
+
+***`repository.py`:***
+
+```py
+from test.app.database.models.models import User
+from sqlalchemy.orm import Session
+from test.app.schemas.schemas import UserCreate
+
+def get_user_respository(id: int, db:Session):
+    return db.query(User).filter(User.id == id).first()
+
+def create_user_respository(db: Session, user_in: UserCreate):
+    '''Tạo mới user và lưu vào database'''
+    db_user = User(name=user_in.name) # tạo đối tượng User từ dữ liệu đầu vào
+    db.add(db_user) # thêm vào session
+    db.commit()
+    db.refresh(db_user) # cập nhật đối tượng với id tự tăng từ database
+    return db_user
+```
+
+### Phần 13.2.3. Khởi tạo file `services/services.py`
+
+***`services.py`:***
+
+```py
+from test.app.repository.repository import (
+    get_user_respository,
+    create_user_respository
+)
+from test.app.schemas.schemas import UserCreate
+
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+def get_user_services(id: int, db: Session):
+    # Xem lại phần code bị lược bỏ phần trước và so sánh thấy rõ hơn 
+    user = get_user_respository(id, db)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user
+
+def create_user_services(db: Session, user_in: UserCreate):
+    return create_user_respository(db, user_in)
+```
+
+### Phần 13.2.4. Khởi tạo file `api/api.py`
+
+***`api.py`:***
+
+```py
+from sqlalchemy.orm import Session
+from test.app.schemas.schemas import UserCreate, UserResponse
+from fastapi import Depends
+from test.app.database.session import get_db
+from test.app.services.services import(
+    create_user_services,
+    get_user_services
+)
+
+from fastapi import APIRouter #, Depends
+from sqlalchemy.orm import Session
+
+router = APIRouter()
+
+@router.get('/users/{id}')
+def get_user(id: int, db: Session = Depends(get_db)):
+    return get_user_services(id, db)
+
+@router.post('/users', response_model=UserResponse, status_code=201)
+def create_user(user_in: UserCreate, db: Session=Depends(get_db)):
+    return create_user_services(db, user_in)
+```
+
+## 13.3. Test thành quả đến hết [13.2](#132-triển-khai-code-từ-testpy-vào-thư-mục-test)
+
+
+Xóa hết toàn bộ đi vì đã import vào các file, sau đó import vào `api.py` rồi import vào `test.py`.
+
+***`test.py`:***
+
+```py
+from fastapi import FastAPI, APIRouter #, Depends
+from test.app.api.api import router
+app = FastAPI()
+
+app.include_router(router)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, port=8000)
+```
+
+Thực hiện chạy file `test.py` không có lỗi -> ok.
