@@ -2162,3 +2162,14 @@ print("Tạo bảng thành công")
 
 > Build: Không có lỗi xảy ra -> OK.
 
+# Phần 15. Thứ tự thiết kế:
+
+```
+1. models      (ORM mapping bảng DB)
+2. schemas     (Pydantic validate request/response)
+3. repository  (tầng thao tác DB)
+4. service     (business logic)
+5. api/router  (endpoint)
+6. test
+```
+
