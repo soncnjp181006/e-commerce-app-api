@@ -1446,11 +1446,13 @@ def get_db():
 from pydantic import BaseModel
 class UserCreate(BaseModel): # Dùng để xem user
     name: str
+    email: str
 
 # Dữ liệu trả về sau khi tạo thành công
 class UserResponse(BaseModel):       # Dùng để import user
     id: int
     name: str
+    email: str
 
 
 # services/ -> thực hiện nghiệp vụ truy vấn user
@@ -1469,7 +1471,7 @@ def get_user_services(id: int, db: Session):
 
 def create_user_services(db: Session, user_in: UserCreate):
     '''Tạo mới user và lưu vào database'''
-    db_user = User(name=user_in.name) # tạo đối tượng User từ dữ liệu đầu vào
+    db_user = User(name=user_in.name, email=user_in.email) # tạo đối tượng User từ dữ liệu đầu vào
     db.add(db_user) # thêm vào session
     db.commit()
     db.refresh(db_user) # cập nhật đối tượng với id tự tăng từ database
@@ -1606,6 +1608,7 @@ test/
 ```
 
 **Thứ tự triển khai:**
+
 - Dữ liệu đầu vào phải được định dạng, chuẩn hóa thông qua bộ lọc -> `schemas/`
 - Thực hiện nghiệp vụ (lấy dữ liệu -> thao tác trên dữ liệu) -> `services/`
 - Gọi các hàm nghiệp vụ sử dụng trong router -> `api/`
@@ -1615,6 +1618,7 @@ Ngoài ra, các hàm truy vấn dữ liệu sẽ được đặt trong folder `r
 ![img](/assets/image%20copy%202.png)
 
 Và thứ tự triển khai chuẩn là:
+
 - Dữ liệu đầu vào phải được định dạng, chuẩn hóa thông qua bộ lọc -> `schemas/`
 - Các hàm truy vấn được viết trong `repository/`
 - Thực hiện nghiệp vụ (lấy dữ liệu -> dùng các hàm truy vấn trong `repository/` thao tác trên dữ liệu) -> `services/`
@@ -1683,11 +1687,13 @@ def get_db():
 from pydantic import BaseModel
 class UserCreate(BaseModel): # Dùng để xem user
     name: str
+    email: str
 
 # Dữ liệu trả về sau khi tạo thành công
 class UserResponse(BaseModel):       # Dùng để import user
     id: int
     name: str
+    email: str
 
 
 # repository/ -> viết các hàm truy vấn
@@ -1700,7 +1706,7 @@ def get_user_respository(id: int, db:Session):
 
 def create_user_respository(db: Session, user_in: UserCreate):
     '''Tạo mới user và lưu vào database'''
-    db_user = User(name=user_in.name) # tạo đối tượng User từ dữ liệu đầu vào
+    db_user = User(name=user_in.name, email=user_in.email) # tạo đối tượng User từ dữ liệu đầu vào
     db.add(db_user) # thêm vào session
     db.commit() # thay thành db.flush() nếu get_db() để db.commit()
     db.refresh(db_user) # cập nhật đối tượng với id tự tăng từ database
@@ -1817,11 +1823,13 @@ from pydantic import BaseModel
 
 class UserCreate(BaseModel): # Dùng để xem user
     name: str
+    email: str
 
 # Dữ liệu trả về sau khi tạo thành công
 class UserResponse(BaseModel):       # Dùng để import user
     id: int
     name: str
+    email: str
 ```
 
 ### 12.2.3. Khởi tạo file `repository/repository.py`
@@ -1838,7 +1846,7 @@ def get_user_respository(id: int, db:Session):
 
 def create_user_respository(db: Session, user_in: UserCreate):
     '''Tạo mới user và lưu vào database'''
-    db_user = User(name=user_in.name) # tạo đối tượng User từ dữ liệu đầu vào
+    db_user = User(name=user_in.name, email=user_in.email) # tạo đối tượng User từ dữ liệu đầu vào
     db.add(db_user) # thêm vào session
     db.commit()
     db.refresh(db_user) # cập nhật đối tượng với id tự tăng từ database
@@ -1901,7 +1909,6 @@ def create_user(user_in: UserCreate, db: Session=Depends(get_db)):
 
 ## 13.3. Test thành quả đến hết [13.2](#132-triển-khai-code-từ-testpy-vào-thư-mục-test)
 
-
 Xóa hết toàn bộ đi vì đã import vào các file, sau đó import vào `api.py` rồi import vào `test.py`.
 
 ***`test.py`:***
@@ -1918,3 +1925,7 @@ if __name__ == "__main__":
 ```
 
 Thực hiện chạy file `test.py` không có lỗi -> ok.
+
+> Hoàn thiện logic backend cơ bản
+
+

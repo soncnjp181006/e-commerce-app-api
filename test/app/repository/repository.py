@@ -7,7 +7,7 @@ def get_user_respository(id: int, db:Session):
 
 def create_user_respository(db: Session, user_in: UserCreate):
     '''Tạo mới user và lưu vào database'''
-    db_user = User(name=user_in.name) # tạo đối tượng User từ dữ liệu đầu vào
+    db_user = User(name=user_in.name, email=user_in.email) # tạo đối tượng User từ dữ liệu đầu vào
     db.add(db_user) # thêm vào session
     db.commit()
     db.refresh(db_user) # cập nhật đối tượng với id tự tăng từ database
