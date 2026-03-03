@@ -79,6 +79,20 @@
     - [14.2.3. Thực hiện quá trình test có lỗi không](#1423-thực-hiện-quá-trình-test-có-lỗi-không)
     - [14.2.4. Chuyển phần 14.2.3 vào các file trong `database/`](#1424-chuyển-phần-1423-vào-các-file-trong-database)
     - [14.2.3. Thực hiện quá trình test lỗi](#1423-thực-hiện-quá-trình-test-lỗi)
+- [Phần 15. Thứ tự thiết kế:](#phần-15-thứ-tự-thiết-kế)
+- [Phần 16. SQL](#phần-16-sql)
+  - [16.1. Tổng quan](#161-tổng-quan)
+    - [16.1.1. Database (Cơ sở dữ liệu)](#1611-database-cơ-sở-dữ-liệu)
+    - [16.1.2. Table (Bảng)](#1612-table-bảng)
+    - [16.1.3. Kiểu dữ liệu](#1613-kiểu-dữ-liệu)
+      - [INT (Số nguyên)](#int-số-nguyên)
+      - [VARCHAR](#varchar)
+      - [DATE (Ngày tháng)](#date-ngày-tháng)
+      - [TEXT (Văn bản lớn)](#text-văn-bản-lớn)
+      - [JSON (Dữ liệu cấu trúc)](#json-dữ-liệu-cấu-trúc)
+  - [16.2. Thao tác trên MySQL \& `sqlalchemy` trong Python](#162-thao-tác-trên-mysql--sqlalchemy-trong-python)
+    - [16.2.1. Tạo bảng cơ bản](#1621-tạo-bảng-cơ-bản)
+      - [Bảng Users](#bảng-users)
 
 # Phần 1. Thiết lập cơ bản
 
@@ -913,7 +927,7 @@ Router:
 
 ## Lưu ý
 
-- dependencies/ KHÔNG phải là business layer.
+- dependencies/ Không phải là business layer.
 
 - Không chứa nghiệp vụ chính
 - Không xử lý logic phức tạp hệ thống
@@ -2173,3 +2187,126 @@ print("Tạo bảng thành công")
 6. test
 ```
 
+# Phần 16. SQL
+
+## 16.1. Tổng quan
+### 16.1.1. Database (Cơ sở dữ liệu)
+Database là một tập hợp có tổ chức của dữ liệu được lưu trữ điện tử. Trong MySQL Database đóng vai trò là container chứa các Table, View, Stored Procedure, và các đối tượng khác
+
++ **Chức năng:** Quản lý quyền truy cập, mã hóa ký tự (charset), và collation (quy tắc so sánh)
++ **Lưu ý:** Một server MySQL có thể chứa nhiều Database độc lập
+
+### 16.1.2. Table (Bảng)
+Table là cấu trúc lưu trữ dữ liệu thực tế dưới dạng hàng (rows), và cột (columns)
+
++ **Row (Record):** Đại diện cho một cấu trúc thực thể duy nhất (ví dụ: một người dùng)
++ **Column (Field):** Đại diện cho một thuộc tính của thực thể (ví dụ: tên, tuổi, email)
++ **Schema:** Định nghĩa cấu trúc của Table (tên cột, kiểu dữ liệu, ràng buộc)
+
+### 16.1.3. Kiểu dữ liệu 
+#### INT (Số nguyên)
++ `TINYINT`
++ `SMALLINT`
++ `MEDIUMINT`
++ `BIGINT`
+
+#### VARCHAR
++ `VARCHAR(n)`: Chuỗi ký tự tối đa `n` ký tự
+
+#### DATE (Ngày tháng)
++ `DATE`: `YYYY-MM-DD`
++ `DATETIME`: `YYYY-MM-DD HH:MM:SS` 
++ `TIMESTAMP`: Lưu số giây từ Epoch. Tự động chuyển đổi theo múi giờ kết nối client
+
+#### TEXT (Văn bản lớn)
+Dùng để lưu trữ lượng lớn dữ liệu chuỗi vượt quá giới hạn `VARCHAR`
++ `TINYTEXT`
++ `TEXT`
++ `MEDIUMTEXT`
++ `LONGTEXT`
+
+#### JSON (Dữ liệu cấu trúc)
+Lưu trữ dữ liệu định dạng JSON dưới dạng nhị phân tối ưu
+
+**Hàm hỗ trợ:**
++ `JSON_EXTRACT`, `JSON_SET`, `JSON_CONTAINS`, `->` (toán tử trích xuất)
+
+## 16.2. Thao tác trên MySQL & `sqlalchemy` trong Python
+
+### 16.2.1. Tạo bảng cơ bản 
+#### Bảng Users
+***`query_test.sql`:***
+
+```sql
+CREATE TABLE USERS_MYSQL (
+    -- id: INT, PRIMARY KEY: Khóa chính, AUTO_INCREMENT: Tự động tăng
+    `id` INT PRIMARY KEY AUTO_INCREMENT,
+    
+    -- username: VARCHAR(100): Chuỗi max 100 ký tự, NOT NULL: Không bỏ trống, UNIQUE: Duy nhất
+    `username` VARCHAR(100) NOT NULL UNIQUE,
+    
+    -- email: VARCHAR(200): Chuỗi max 200 ký tự, NOT NULL: Không bỏ trống, UNIQUE: Duy nhất
+    `email` VARCHAR(200) NOT NULL UNIQUE,
+    
+    -- is_active: TINYINT, DEFAULT 1: Giá trị mặc định là 1 -> Kích hoạt tài khoản
+    `is_active` TINYINT DEFAULT 1, -- 0/1: 0 - bị ban, 1 - đang kích hoạt
+    
+    -- birth_date: DATE: Chỉ cần YYYY-MM-DD, NULL: Có thể bỏ trống
+    `birth_date` DATE NULL,
+    
+    -- create_at: TIMESTAMP: Ghi thời gian tạo, DEFAULT CURRENT_TIMESTAMP: Mặc định thời gian tạo
+    `create_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE = InnoDB;
+```
+
+**Để sử dụng SQLALCHEMY trong Python, trước hết ta cần kết nối database MySQL, ở các phần sau, tự hiểu là có phần này ở trên đầu file `test.py`**
+
+***`test.py`:***
+```python
+from sqlalchemy import create_engine
+
+settings = [
+    {"DATABASE_URL" : "mysql+pymysql://your_user:your_password@localhost:3306/your_database"},
+    {"DEBUG": True},
+    {"pool_size": 10},
+    {"max_overflow": 20},
+    {"pool_pre_ping": True}
+]
+
+engine = create_engine(
+    settings[0]['DATABASE_URL'],               # link kết nối database
+    echo=settings[1]['DEBUG'],                 # log SQL ra terminal khi debug
+    pool_size=settings[2]["pool_size"],        # số kết nối tối đa trong pool
+    max_overflow=settings[3]["max_overflow"],  # cho phép thêm 20 kết nối khi pool đầy
+    pool_pre_ping=settings[4]["pool_pre_ping"] # kiểm tra kết nối trước mỗi lần dùng
+)
+```
+
+***`test.py`:***
+```python
+from sqlalchemy import Column, Integer, String, Date, DateTime
+from sqlalchemy.orm import declarative_base
+from datetime import datetime
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = "USERS_SQLALCHEMY"
+    # Integer <-> INT, BIGINT, TINYINT trong MySQL
+    # primary_key <-> PRIMARY KEY trong MySQL
+    # autoincrement <-> AUTO_INCREMENT trong MySQL
+    # nullable=False <-> NOT NULL; nullable=True <-> NULL trong MySQL
+    # unique <-> UNIQUE trong MySQL
+    # DATETIME: YYYY-MM-DD HH:MM:SS
+    # datetime.utcnow: thời điểm hiện tại (thời điểm thực hiện)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String(100), nullable=False, unique=True)
+    email = Column(String(200), nullable=False, unique=True)
+    is_active = Column(Integer, default=1)
+    birthdate = Column(Date, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+# Tạo bảng khi bảng chưa tồn tại
+Base.metadata.create_all(bind=engine)
+print("Tạo bảng thành công")
+```
