@@ -80,7 +80,7 @@
     - [14.2.4. Chuyển phần 14.2.3 vào các file trong `database/`](#1424-chuyển-phần-1423-vào-các-file-trong-database)
     - [14.2.3. Thực hiện quá trình test lỗi](#1423-thực-hiện-quá-trình-test-lỗi)
 - [Phần 15. Thứ tự thiết kế:](#phần-15-thứ-tự-thiết-kế)
-- [Phần 16. SQL](#phần-16-sql)
+- [Phần 16. SQL \[Phần này không có trong dự án chính thức\]](#phần-16-sql-phần-này-không-có-trong-dự-án-chính-thức)
   - [16.1. Tổng quan](#161-tổng-quan)
     - [16.1.1. Database (Cơ sở dữ liệu)](#1611-database-cơ-sở-dữ-liệu)
     - [16.1.2. Table (Bảng)](#1612-table-bảng)
@@ -91,8 +91,13 @@
       - [TEXT (Văn bản lớn)](#text-văn-bản-lớn)
       - [JSON (Dữ liệu cấu trúc)](#json-dữ-liệu-cấu-trúc)
   - [16.2. Thao tác trên MySQL \& `sqlalchemy` trong Python](#162-thao-tác-trên-mysql--sqlalchemy-trong-python)
-    - [16.2.1. Tạo bảng cơ bản](#1621-tạo-bảng-cơ-bản)
+    - [Tạo bảng cơ bản](#tạo-bảng-cơ-bản)
       - [Bảng Users](#bảng-users)
+  - [16.3. Mối quan hệ giữa `FOREIGN KEY` và `PRIMARY KEY`](#163-mối-quan-hệ-giữa-foreign-key-và-primary-key)
+    - [16.3.1. Định nghĩa](#1631-định-nghĩa)
+      - [`PRIMARY KEY` (PK - Khóa chính)](#primary-key-pk---khóa-chính)
+      - [`FOREIGN KEY` (FK - Khóa ngoại)](#foreign-key-fk---khóa-ngoại)
+      - [Mối quan hệ giữa `PRIMARY KEY` và `FOREIGN KEY`](#mối-quan-hệ-giữa-primary-key-và-foreign-key)
 
 # Phần 1. Thiết lập cơ bản
 
@@ -2187,7 +2192,7 @@ print("Tạo bảng thành công")
 6. test
 ```
 
-# Phần 16. SQL
+# Phần 16. SQL [Phần này không có trong dự án chính thức]
 
 ## 16.1. Tổng quan
 ### 16.1.1. Database (Cơ sở dữ liệu)
@@ -2233,7 +2238,7 @@ Lưu trữ dữ liệu định dạng JSON dưới dạng nhị phân tối ưu
 
 ## 16.2. Thao tác trên MySQL & `sqlalchemy` trong Python
 
-### 16.2.1. Tạo bảng cơ bản 
+### Tạo bảng cơ bản 
 #### Bảng Users
 ***`query_test.sql`:***
 
@@ -2310,3 +2315,41 @@ class User(Base):
 Base.metadata.create_all(bind=engine)
 print("Tạo bảng thành công")
 ```
+
+## 16.3. Mối quan hệ giữa `FOREIGN KEY` và `PRIMARY KEY`
+
+### 16.3.1. Định nghĩa
+#### `PRIMARY KEY` (PK - Khóa chính)
+**Định nghĩa:**
+> Là một cột hoặc một tập hợp các cột dùng để xác định duy nhất mỗi hàng trong một bảng
+
+**Đặc tính:**
+> + Giá trị phải là duy nhất (UNIQUE)
+> + Không được phép `NULL` (`NOT NULL`)
+> + Một bảng chỉ có thể có một `PRIMARY KEY`
+
+**Vai trò:**
+> Đảm bảo tính toàn vẹn thực thể (Entity Integrity), làm điểm neo để các bảng khác tham chiếu đến
+
+#### `FOREIGN KEY` (FK - Khóa ngoại)
+**Định nghĩa:**
+> Là một cột hoặc một tập hơn các cột trong một bảng (bảng con) tham chiếu đến `PRIMARY KEY` (hoặc `UNIQUE KEY`) của một bảng khác (bảng cha)
+
+**Đặc tính:**
+> + Giá trị có thể trùng lặp (nếu quan hệ 1 - N)
+> + Có thể chấp nhận `NULL` (tùy thiết kế)
+> + Một bảng có thể có nhiều `FOREIGN KEY`
+
+**Vai trò:**
+> Đảm bảo tính toàn vẹn tham chiếu (Referential Integrity), liên kết dữ liệu giữa các bảng.
+
+
+#### Mối quan hệ giữa `PRIMARY KEY` và `FOREIGN KEY`
+
+Mối quan hệ giữ PK và FK là nền tảng của mô hình cơ sở dữ liệu (RDBMS)
+
+> + **Bảng cha (Parent Table):** Chứa `PRIMARY KEY`
+> + **Bảng con (Child Table):** Chứa `FOREIGN KEY` tham chiếu đến PK của bảng cha
+> + **Ràng buộc (Constraint):** MySQL ngăn chặn các hành động làm mất liên kết dữ liệu (ví dụ: xóa bản ghi cha khi bản ghi con vẫn đang tham chiếu đến nó, trừ khi có cấu hình đặc biệt)
+
+
