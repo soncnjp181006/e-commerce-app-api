@@ -2353,3 +2353,67 @@ Mối quan hệ giữ PK và FK là nền tảng của mô hình cơ sở dữ l
 > + **Ràng buộc (Constraint):** MySQL ngăn chặn các hành động làm mất liên kết dữ liệu (ví dụ: xóa bản ghi cha khi bản ghi con vẫn đang tham chiếu đến nó, trừ khi có cấu hình đặc biệt)
 
 
+### 16.3.2. Cơ chế hoạt động và ràng buộc 
+#### Tính toàn vẹn tham chiếu (Referential Integrity)
+Khi một Foreign Key được thiết lập, MySQL (với engine InnoDB) sẽ enforced các quy tắc sau:
+1. **Insert/Update ở bảng con:** Giá trị đưa vào cột FK phải tồn tại trong cột PK của bảng cha hoặc là `NULL`.
+2. **Delete/Update ở bảng cha:** Hành động phụ thuộc vào cấu hình `ON DELETE` và `ON UPDATE`.
+
+#### Các hành động (Actions)
++ **RESTRICT (Mặc định):** Ngăn chặn việc xóa/cập nhật bản ghi cha nếu có bản ghi con tham chiếu
++ **CASCADE:** Tự động xóa/cập nhật bản ghi con khi bản ghi cha bị xóa/cập nhật
++ **SET NULL:** Đặt giá trị FK về `NULL` khi bản ghi cha bị xóa/cập nhật (cột FK phải cho phép `NULL`)
++ **NO ACTION:** Tương tự RESTRICT, kiểm tra sau khi statement hoàn thành
++ **SET DEFAULT:** Đặt về giá trị mặc định (ít hỗ trợ trong MySQL)
+
+### 16.3.3. Ví dụ 
+#### 16.3.3.1. Tạo Bảng và Thiết Lập Quan Hệ 
+***`query_test.sql`:***
+```sql
+-- Đảm bảo sử dụng engine InnoDB để hỗ trọ Foreign Key
+-- Tạo bảng cha: departments (Phòng ban)
+CREATE TABLE departments_mysql (
+    `dept_id` INT AUTO_INCREMENT PRIMARY KEY, -- id phòng <1>
+    `dept_name` VARCHAR(100) NOT NULL, -- tên phòng
+    `location` VARCHAR(255) -- địa chỉ
+) ENGINE = InnoDB;
+
+-- Tạo bảng con: employees (Nhân viên)
+-- Có khóa ngoại tham chiếu đến departments
+CREATE TABLE employees_mysql (
+    `emp_id` INT AUTO_INCREMENT PRIMARY KEY, -- id nhân viên
+    `emp_name` VARCHAR(100) NOT NULL, -- tên nhân viên
+    `dept_id` INT NOT NULL, -- id phòng <1>
+    -- Định nghĩa Foreign Key
+    CONSTRAINT fk_emp_department  -- fk_<bảng con>_<bảng cha>
+        Foreign Key (`dept_id`)    -- cột ở bảng con
+        REFERENCES departments_mysql (`dept_id`) -- cột ở bảng cha
+        ON DELETE RESTRICT -- không được phép xóa phòng ban nếu còn nhân viên ở phòng đó
+        -- Khi cột dept_id ở bảng cha thay đổi giá trị -> ở bảng con cập nhật theo bảng cha
+        ON UPDATE CASCADE  -- tự động cập nhật xuống bảng employees 
+) ENGINE=InnoDB;
+```
+
+***`test.py`:***
+```python
+class Departments(Base):
+   __tablename__ = 'departments_sqlalchemy'
+   dept_id=Column(Integer, autoincrement=True, primary_key=True)
+   dept_name=Column(String(100), nullable=False)
+   location=Column(String(255))
+
+class Employees(Base):
+   __tablename__ = 'employees_sqlalchemy'
+   emp_id=Column(Integer, autoincrement=True, primary_key=True)
+   emp_name=Column(String(100), nullable=False)
+   dept_id=Column(
+      Integer,
+      ForeignKey(
+         'departments_sqlalchemy.dept_id',
+         ondelete='RESTRICT',
+         onupdate='CASCADE'
+      ),
+      nullable=False
+   )
+```
+
