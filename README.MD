@@ -98,6 +98,12 @@
       - [`PRIMARY KEY` (PK - Khóa chính)](#primary-key-pk---khóa-chính)
       - [`FOREIGN KEY` (FK - Khóa ngoại)](#foreign-key-fk---khóa-ngoại)
       - [Mối quan hệ giữa `PRIMARY KEY` và `FOREIGN KEY`](#mối-quan-hệ-giữa-primary-key-và-foreign-key)
+    - [16.3.2. Cơ chế hoạt động và ràng buộc](#1632-cơ-chế-hoạt-động-và-ràng-buộc)
+      - [Tính toàn vẹn tham chiếu (Referential Integrity)](#tính-toàn-vẹn-tham-chiếu-referential-integrity)
+      - [Các hành động (Actions)](#các-hành-động-actions)
+    - [16.3.3. Ví dụ](#1633-ví-dụ)
+      - [16.3.3.1. Tạo Bảng và Thiết Lập Quan Hệ](#16331-tạo-bảng-và-thiết-lập-quan-hệ)
+      - [16.3.3.2. Thao tác cơ bản trên dữ liệu](#16332-thao-tác-cơ-bản-trên-dữ-liệu)
 
 # Phần 1. Thiết lập cơ bản
 
@@ -2416,4 +2422,52 @@ class Employees(Base):
       nullable=False
    )
 ```
+
+#### 16.3.3.2. Thao tác cơ bản trên dữ liệu
+
+***`query_test.sql`***
+
+**Chèn dữ liệu vào bảng cha:**
+
+```sql
+-- chèn vào cột chỉ định, không ghi cột -> phải ghi đầy đủ
+INSERT INTO departments_mysql(dept_name, location) 
+VALUES
+    ('IT', 'Ha Noi'),
+    ('HR', 'Ho Chi Minh');
+```
+
+**Xem dữ liệu toàn bảng cha:** `SELECT * FROM departments_mysql;`
+
+![img](/assets/image%20copy%204.png)
+
+**Xem dữ liệu theo cột cụ thể của bảng cha:** `SELECT dpm.dept_id, dpm.dept_name FROM departments_mysql AS dpm;`
+
+![img](/assets/image%20copy%205.png)
+
+**Chèn dữ liệu vào bảng con:**
+```sql
+INSERT INTO employees_mysql(emp_name, dept_id) 
+VALUES
+    ('Son', 1),  -- Hợp lệ vì dept_id = 1 đã tồn tại ở bảng cha
+    ('Manh', 2); -- Hợp lệ vì dept_id = 2 đã tồn tại ở bảng cha
+```
+
+**Xem dữ liệu toàn bảng con:** `SELECT * FROM employees_mysql;`
+
+![img](/assets/image%20copy%206.png)
+
+**Xem dữ liệu ghép bởi bảng cha và bảng con:** 
+> Lưu ý: tìm hiểu kỹ về các loại join trong MySQL
+
+```sql
+SELECT 
+    dpm.dept_id, dpm.dept_name, dpm.location,
+    emp.emp_id, emp.emp_name
+FROM departments_mysql AS dpm
+JOIN employees_mysql AS emp
+WHERE emp.dept_id = dpm.dept_id
+```
+
+![img](/assets/image%20copy%207.png)
 
