@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 
 settings = [
-    {"DATABASE_URL" : "mysql+pymysql://your_user:your_password@localhost:3306/your_database"},
+    {"DATABASE_URL" : "mysql+pymysql://soncn:tranxuanson2k61810@localhost:3306/pc_shop"},
     {"DEBUG": True},
     {"pool_size": 10},
     {"max_overflow": 20},
@@ -22,27 +22,30 @@ engine = create_engine(
 #############################################################################################
 # Thực hiện tạo bảng, ... học truy vấn ở đây, phần bên trên là kết nối database
 #############################################################################################
-from sqlalchemy import Column, Integer, String, Date, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import declarative_base
-from datetime import datetime
 
 Base = declarative_base()
 
-class User(Base):
-    __tablename__ = "USERS_SQLALCHEMY"
-    # Integer <-> INT, BIGINT, TINYINT trong MySQL
-    # primary_key <-> PRIMARY KEY trong MySQL
-    # autoincrement <-> AUTO_INCREMENT trong MySQL
-    # nullable=False <-> NOT NULL; nullable=True <-> NULL trong MySQL
-    # unique <-> UNIQUE trong MySQL
-    # DATETIME: YYYY-MM-DD HH:MM:SS
-    # datetime.utcnow: thời điểm hiện tại (thời điểm thực hiện)
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String(100), nullable=False, unique=True)
-    email = Column(String(200), nullable=False, unique=True)
-    is_active = Column(Integer, default=1)
-    birthdate = Column(Date, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+class Departments(Base):
+   __tablename__ = 'departments_sqlalchemy'
+   dept_id=Column(Integer, autoincrement=True, primary_key=True)
+   dept_name=Column(String(100), nullable=False)
+   location=Column(String(255))
+
+class Employees(Base):
+   __tablename__ = 'employees_sqlalchemy'
+   emp_id=Column(Integer, autoincrement=True, primary_key=True)
+   emp_name=Column(String(100), nullable=False)
+   dept_id=Column(
+      Integer,
+      ForeignKey(
+         'departments_sqlalchemy.dept_id',
+         ondelete='RESTRICT',
+         onupdate='CASCADE'
+      ),
+      nullable=False
+   )
 
 # Tạo bảng khi bảng chưa tồn tại
 Base.metadata.create_all(bind=engine)
