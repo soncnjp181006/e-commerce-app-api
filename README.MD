@@ -2496,3 +2496,58 @@ for dept in departments:
    print(dept.dept_id, dept.dept_name, dept.location)
 ```
 
+# Phần 17. SQLALCHEMY [Phần này không có trong dự án chính thức]
+## 17.1. Tạo Engine kết nối Database
+```python
+from sqlalchemy import create_engine
+
+settings = [
+    {"DATABASE_URL" : "mysql+pymysql://your_user:your_password@localhost:3306/your_database"},
+    {"DEBUG": True},
+    {"pool_size": 10},
+    {"max_overflow": 20},
+    {"pool_pre_ping": True}
+]
+
+engine = create_engine(
+    settings[0]['DATABASE_URL'],               # link kết nối database
+    echo=settings[1]['DEBUG'],                 # log SQL ra terminal khi debug
+    pool_size=settings[2]["pool_size"],        # số kết nối tối đa trong pool
+    max_overflow=settings[3]["max_overflow"],  # cho phép thêm 20 kết nối khi pool đầy
+    pool_pre_ping=settings[4]["pool_pre_ping"] # kiểm tra kết nối trước mỗi lần dùng
+)
+```
+
+## 17.2. Các kiểu dữ liệu 
+#### Kiểu số 
++ `Integer`
++ `BigInteger`
++ `SmallInteger`
++ `Float`
++ `Numeric` (Tương đương `DECIMAL` trong MySQL)
+
+#### Kiểu chuỗi
++ `String(length)` 
++ `Text` - Dùng cho văn bản dài
++ `Unicode` - Xử lí chuỗi UTF-8
++ `Unicode Text` - Xử lí văn bản dài Unicode
+
+####  Kiểu Ngày Giờ (Date and Time Types)
++ `DateTime` - `YYYY-MM-DD HH:MM:SS`
++ `Date` - Lưu trữ ngày
++ `Time` - Lưu trữ thời gian
++ `Interval` - Lưu trữ khoảng thời gian
+
+#### Kiểu Boolean và Nhị Phân
++ `Boolean`: `True/False`
++ `LargeBinary`: Lưu trữ dữ liệu nhị phân lớn (BLOB)
+
+#### Kiểu dữ liệu đặc biệt
++ `JSON`
++ `PickleType`
++ `ARRAY` - Chủ yếu hỗ trợ PostgreSQL
+
+## 17.3. Tạo bảng & Xóa bảng 
+```python
+
+```
