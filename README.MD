@@ -2466,8 +2466,33 @@ SELECT
     emp.emp_id, emp.emp_name
 FROM departments_mysql AS dpm
 JOIN employees_mysql AS emp
-WHERE emp.dept_id = dpm.dept_id
+WHERE emp.dept_id = dpm.dept_id;
 ```
 
 ![img](/assets/image%20copy%207.png)
+
+***`test.py`:***
+**Chèn dữ liệu vào bảng cha:**
+```python
+# Chèn dữ liệu bằng Session
+from sqlalchemy.orm import sessionmaker
+Session = sessionmaker(bind=engine)
+session = Session()
+
+# Thêm dữ liệu vào Departments
+dept_1 = Departments(dept_name='IT', location='Ha Noi')
+dept_2 = Departments(dept_name='HR', location='Ho Chi Minh')
+
+session.add_all([dept_1, dept_2])
+
+session.commit() # Commit -> thực hiện lưu
+print('Chèn dữ liệu vào bảng departments_sqlalchemy thành công')
+```
+
+**Xem dữ liệu toàn bảng cha:**
+```python
+departments = session.query(Departments).all()
+for dept in departments:
+   print(dept.dept_id, dept.dept_name, dept.location)
+```
 

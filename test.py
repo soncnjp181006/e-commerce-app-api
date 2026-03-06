@@ -50,3 +50,22 @@ class Employees(Base):
 # Tạo bảng khi bảng chưa tồn tại
 Base.metadata.create_all(bind=engine)
 print("Tạo bảng thành công")
+
+
+# Chèn dữ liệu bằng Session
+from sqlalchemy.orm import sessionmaker
+Session = sessionmaker(bind=engine)
+session = Session()
+
+# Thêm dữ liệu vào Departments
+dept_1 = Departments(dept_name='IT', location='Ha Noi')
+dept_2 = Departments(dept_name='HR', location='Ho Chi Minh')
+
+session.add_all([dept_1, dept_2])
+
+session.commit() # Commit -> thực hiện lưu
+print('Chèn dữ liệu vào bảng departments_sqlalchemy thành công')
+
+departments = session.query(Departments).all()
+for dept in departments:
+   print(dept.dept_id, dept.dept_name, dept.location)
